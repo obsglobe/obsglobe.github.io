@@ -10,7 +10,8 @@
             <v-avatar size=42>
               <img src="https://assets-cdn.github.com/images/modules/logos_page/GitHub-Mark.png">
             </v-avatar>
-            Source Code</v-btn>
+            <span style="margin-left:8px;">About me</span>
+          </v-btn>
         </v-toolbar-items>
       </v-toolbar>
 
@@ -28,6 +29,11 @@ export default {
 </script>
 
 <style>
+#drawerMenu {
+  background-color: #eeeeee;
+  display: none;
+}
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
