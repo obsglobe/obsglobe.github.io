@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
+    <svg id="svg"></svg>
     <h2>Essential Links</h2>
     <ul>
       <li>
@@ -84,11 +84,72 @@
 </template>
 
 <script>
+
 export default {
-  name: 'HelloWorld',
+  name: 'Root',
   data () {
-    return {
-      msg: 'Welcome to Your Vue.js App'
+    return {}
+  },
+  mounted () {
+    const width = 960
+    const height = 500
+    const config = {
+      speed: 0.005,
+      verticleTilt: -30,
+      horizontalTilt: 0
+    }
+
+    let locations = []
+
+    const svg = this.$d3.select('svg')
+      .attr('width', width).attr('height', height)
+
+    const markerGroup = svg.append('g')
+    const projection = this.$d3.geoOrthographic()
+    const initialScale = projection.scale()
+    const path = this.$d3.geoPath().projection(projection)
+    const center = [width / 2, height / 2]
+
+    drawGlobe()
+
+    function drawGlobe () {
+      this.$d3.queue()
+        .defer(this.$d3.json, 'https://gist.githubusercontent.com/mbostock/4090846/raw/d534aba169207548a8a3d670c9c2cc719ff05c47/world-110m.json')
+        .defer(this.$d3.json, 'locations.json')
+        .await((error, worldData, locationData) => {
+          svg.selectAll('.segment')
+            .data(this.$topojson.feature(worldData, worldData.objects.countries).features)
+            .enter().append('path')
+            .attr('class', 'segment')
+            .attr('d', path)
+            .style('stroke', '#888')
+            .style('stroke-width', '1px')
+            .style('fill', (d, i) => '#e5e5e5')
+            .style('opacity', '.6')
+          locations = locationData
+          drawMarkers()
+        })
+    }
+
+    function drawMarkers () {
+      const markers = markerGroup.selectAll('circle')
+        .data(locations)
+      markers
+        .enter()
+        .append('circle')
+        .merge(markers)
+        .attr('cx', d => projection([d.longitude, d.latitude])[0])
+        .attr('cy', d => projection([d.longitude, d.latitude])[1])
+        .attr('fill', d => {
+          const coordinate = [d.longitude, d.latitude]
+          var gdistance = this.$d3.geoDistance(coordinate, projection.invert(center))
+          return gdistance > 1.57 ? 'none' : 'steelblue'
+        })
+        .attr('r', 7)
+
+      markerGroup.each(function () {
+        this.parentNode.appendChild(this)
+      })
     }
   }
 }
